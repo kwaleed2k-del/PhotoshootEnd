@@ -1,0 +1,46 @@
+import type { BaseCreativeControls, Scene } from './shared';
+
+export interface Surface {
+  id: string;
+  name: string;
+  description: string;
+}
+
+export interface Material {
+  id: string;
+  name: string;
+  description: string;
+}
+
+// Controls specific to Product mode
+export interface ProductCreativeControls extends BaseCreativeControls {
+  productShadow: 'None' | 'Soft' | 'Hard';
+  customProps: string;
+  surface: Surface;
+  productMaterial: Material;
+}
+
+export interface StagedAsset {
+  id: string; // 'product' or index of companion asset
+  base64: string;
+  x: number; // percentage
+  y: number; // percentage
+  z: number; // z-index
+  scale: number; // percentage of canvas size
+}
+
+export interface ProductSceneTemplate {
+  id: string;
+  name:string;
+  scene: Partial<Scene>;
+  controls: Partial<ProductCreativeControls>;
+  stagedAssets?: StagedAsset[];
+}
+
+export type ProductEcommercePack = 'none' | 'essential' | 'plus';
+
+export interface ProductPackShot {
+  name: string;
+  cameraAngleId: string;
+  focalLengthId?: string;
+}
