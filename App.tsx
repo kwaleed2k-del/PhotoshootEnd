@@ -16,8 +16,12 @@ import { LandingPage } from './components/landing/LandingPage';
 import { DatabaseTest } from './components/shared/DatabaseTest';
 import { ImageProcessingNotification } from './components/shared/ImageProcessingNotification';
 import { StudioModeSelector } from './components/studio/StudioModeSelector';
+import { BillingOverview } from './src/pages/BillingOverview';
+import Dashboard from './src/pages/Dashboard';
+import Account from './src/pages/Account';
 import { Wand2, User, PanelLeft, PanelRight, Lightbulb, DollarSign, LogOut, HelpCircle, ChevronDown, Database } from 'lucide-react';
 import { PLAN_DETAILS } from './services/permissionsService';
+import { supabase } from './services/supabaseClient';
 
 const UserMenu: React.FC<{ 
     onPricingOpen: () => void;
@@ -84,6 +88,12 @@ const UserMenu: React.FC<{
                     <button onClick={() => { onPricingOpen(); setIsOpen(false); }} className="w-full flex items-center gap-3 p-2 text-sm text-left rounded-md hover:bg-zinc-800 transition-colors text-zinc-300">
                         <DollarSign size={16} /> Manage Plan
                     </button>
+                    <a href="/account" onClick={(e) => { e.preventDefault(); window.location.href = '/account'; }} className="w-full flex items-center gap-3 p-2 text-sm text-left rounded-md hover:bg-zinc-800 transition-colors text-zinc-300">
+                        <User size={16} /> Account
+                    </a>
+                    <a href="/billing" onClick={(e) => { e.preventDefault(); window.location.href = '/billing'; }} className="w-full flex items-center gap-3 p-2 text-sm text-left rounded-md hover:bg-zinc-800 transition-colors text-zinc-300">
+                        <DollarSign size={16} /> Billing & Credits
+                    </a>
                     <button onClick={logout} className="w-full flex items-center gap-3 p-2 text-sm text-left rounded-md hover:bg-zinc-800 transition-colors text-zinc-300">
                         <LogOut size={16} /> Sign Out
                     </button>
@@ -161,6 +171,7 @@ const AppContent: React.FC = () => {
     const [showStudio, setShowStudio] = useState(false);
     const [showModeSelector, setShowModeSelector] = useState(false);
     const [showDatabaseTest, setShowDatabaseTest] = useState(false);
+    const [showBilling, setShowBilling] = useState(false);
 
     useEffect(() => {
         const handleResize = () => {
@@ -180,6 +191,31 @@ const AppContent: React.FC = () => {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
+    // Allow direct routing to studio flows
+    useEffect(() => {
+        const path = window.location.pathname;
+        if (path === '/studio/apparel') {
+            setShowStudio(true);
+            setShowModeSelector(false);
+            setStudioMode('apparel' as any);
+        } else if (path === '/studio/product') {
+            setShowStudio(true);
+            setShowModeSelector(false);
+            setStudioMode('product' as any);
+        }
+    }, [setStudioMode]);
+
+    // Smart redirect: if a user is authenticated and lands on '/', take them to /dashboard
+    useEffect(() => {
+        (async () => {
+            if (window.location.pathname === '/') {
+                const { data } = await supabase.auth.getUser();
+                if (data?.user) {
+                    window.history.replaceState({}, '', '/dashboard');
+                }
+            }
+        })();
+    }, []);
     useEffect(() => {
         // Allow landing page to trigger a specific guided tour
         const handler = (evt: Event) => {
@@ -218,6 +254,33 @@ const AppContent: React.FC = () => {
             window.removeEventListener('hideProcessingNotification', handleHideNotification);
         };
     }, [setProcessingNotification]);
+
+    // Show account page
+    if (window.location.pathname === '/account') {
+        return (
+            <div className="min-h-screen">
+                <Account />
+            </div>
+        );
+    }
+
+    // Dashboard page after login
+    if (window.location.pathname === '/dashboard') {
+        return (
+            <div className="min-h-screen">
+                <Dashboard />
+            </div>
+        );
+    }
+
+    // Show billing page if route is /billing
+    if (window.location.pathname === '/billing' || showBilling) {
+        return (
+            <div className="min-h-screen">
+                <BillingOverview />
+            </div>
+        );
+    }
 
     // Show landing page by default, studio when showStudio is true
     if (!showStudio) {
@@ -285,6 +348,7 @@ const AppContent: React.FC = () => {
                  )}
             </main>
             
+           
             {isGuideActive && <InteractiveGuide />}
             <BestPracticesModal isOpen={isBestPracticesModalOpen} onClose={() => setBestPracticesModalOpen(false)} />
             

@@ -26,7 +26,7 @@ export const LoginPage: React.FC = () => {
         try {
             const { error } = await authService.signInWithEmail(email, password);
             if (error) throw error;
-            window.location.href = '/';
+            window.location.href = '/dashboard';
         } catch (err: any) {
             setError(err.message || 'Failed to sign in. Please check your credentials.');
         } finally {

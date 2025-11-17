@@ -9,7 +9,11 @@ export default defineConfig(({ mode }) => {
     return {
       server: {
         port: 3000,
+        strictPort: true,
         host: '0.0.0.0',
+        proxy: {
+          '/api': 'http://localhost:8787',
+        },
       },
       plugins: [
         react(),
@@ -22,7 +26,10 @@ export default defineConfig(({ mode }) => {
       ],
       define: {
         'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
-        'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY)
+        'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY),
+        // Ensure Vite exposes these at runtime even if env parsing is finicky on Windows encodings
+        'import.meta.env.VITE_SUPABASE_URL': JSON.stringify(env.VITE_SUPABASE_URL ?? process.env.VITE_SUPABASE_URL),
+        'import.meta.env.VITE_SUPABASE_ANON_KEY': JSON.stringify(env.VITE_SUPABASE_ANON_KEY ?? process.env.VITE_SUPABASE_ANON_KEY),
       },
       resolve: {
         alias: {

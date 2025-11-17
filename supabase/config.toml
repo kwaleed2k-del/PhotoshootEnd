@@ -1,0 +1,7 @@
+[functions.cron-monthly-grant]
+verify_jwt = false
+
+[cron.jobs.job1]
+schedule = "0 0 0 1 * *"
+endpoint = "cron-monthly-grant"
+

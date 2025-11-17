@@ -1019,18 +1019,61 @@ Return ONLY a JSON array of 4 objects.`;
         if (imageParts.length >= 2) {
           const modelImage = `data:${imageParts[0].inlineData.mimeType};base64,${imageParts[0].inlineData.data}`;
           const apparelImage = `data:${imageParts[1].inlineData.mimeType};base64,${imageParts[1].inlineData.data}`;
-          
+
+          const describeOption = (option?: any) => {
+            if (!option) return undefined;
+            if (typeof option === 'string') return option;
+            return option.description || option.name || option.label || option.value;
+          };
+
+          const describeBackground = (background?: any) => {
+            if (!background) return 'a professional studio environment';
+            if (background.id === 'custom') return 'the exact custom environment provided by the user-uploaded background image';
+            if (background.type === 'color' && background.name) return `${background.name.toLowerCase()} color backdrop`;
+            if (background.type === 'image' && background.name) return `a photorealistic ${background.name}`;
+            return background.name || 'a professional studio environment';
+          };
+
+          const describeLighting = (lighting?: any) => describeOption(lighting) || 'studio lighting';
+          const describeTimeOfDay = (background?: any, lighting?: any) =>
+            background?.timeOfDay || lighting?.timeOfDay || 'studio';
+
+          const controlsForPrompt = settings
+            ? {
+                pose: describeOption(settings.shotType),
+                expression: describeOption(settings.expression),
+                cameraAngle: describeOption(settings.cameraAngle),
+                aperture: describeOption(settings.aperture),
+                focalLength: describeOption(settings.focalLength),
+                lightingDirection: describeOption(settings.lightingDirection),
+                lightQuality: describeOption(settings.lightQuality),
+                catchlight: describeOption(settings.catchlightStyle),
+                hairStyle: settings.hairStyle?.trim() ? settings.hairStyle : undefined,
+                makeupStyle: settings.makeupStyle?.trim() ? settings.makeupStyle : undefined,
+                garmentStyling: settings.garmentStyling?.trim() ? settings.garmentStyling : undefined,
+                fabricTexture: describeOption(settings.fabric),
+                colorGrade: describeOption(settings.colorGrade),
+                sceneProps: settings.sceneProps?.trim() ? settings.sceneProps : undefined,
+                environmentalEffects: settings.environmentalEffects?.trim() ? settings.environmentalEffects : undefined,
+                cinematicLook: Boolean(settings.cinematicLook),
+                hyperRealism: Boolean(settings.isHyperRealismEnabled),
+              }
+            : undefined;
+
           const fashionPrompt = fashionPromptGenerator.generateFashionPrompt({
             modelImage,
             apparelImage,
             scene: {
-              background: 'professional studio',
-              lighting: 'studio lighting',
-              timeOfDay: 'studio'
+              background: describeBackground(settings?.background),
+              lighting: describeLighting(settings?.lighting),
+              timeOfDay: describeTimeOfDay(settings?.background, settings?.lighting),
+              props: settings?.sceneProps,
+              effects: settings?.environmentalEffects,
             },
             aspectRatio,
             style: 'high-fashion',
-            mood: 'elegant'
+            mood: 'elegant',
+            controls: controlsForPrompt,
           });
           
           parts = [
