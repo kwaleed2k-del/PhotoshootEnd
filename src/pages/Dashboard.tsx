@@ -25,33 +25,33 @@ const UNSPLASH_PARAMS = '?auto=format&fit=crop&w=1200&q=80&ixlib=rb-4.0.3';
 const withUnsplashParams = (url: string) => `${url}${UNSPLASH_PARAMS}`;
 
 const modelImages: string[] = [
-  'https://images.unsplash.com/photo-1503023345310-bd7c1de61c7d',
-  'https://images.unsplash.com/photo-1524504388940-b1c1722653e1',
-  'https://images.unsplash.com/photo-1494790108377-be9c29b29330',
-  'https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91',
-  'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab',
-  'https://images.unsplash.com/photo-1464863979621-258859e62245',
-  'https://images.unsplash.com/photo-1542291026-7eec264c27ff',
-  'https://images.unsplash.com/photo-1524502397800-82d37d6dda99',
-  'https://images.unsplash.com/photo-1520975916090-3105956dac38',
-  'https://images.unsplash.com/photo-1517841905240-472988babdf9',
-  'https://images.unsplash.com/photo-1475688621402-4257b7f1c32c',
-  'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f',
+  'https://images.unsplash.com/photo-1534528741775-53994a69daeb', // Modern fashion model
+  'https://images.unsplash.com/photo-1524504388940-b1c1722653e1', // Contemporary style
+  'https://images.unsplash.com/photo-1488426862026-3ee34a7d66df', // High fashion editorial
+  'https://images.unsplash.com/photo-1531123897727-8f129e1688ce', // Street style model
+  'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e', // Modern portrait
+  'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f', // Fashion forward
+  'https://images.unsplash.com/photo-1494790108377-be9c29b29330', // Contemporary beauty
+  'https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91', // Modern editorial
+  'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab', // High fashion
+  'https://images.unsplash.com/photo-1503023345310-bd7c1de61c7d', // Streetwear style
+  'https://images.unsplash.com/photo-1517841905240-472988babdf9', // Modern lifestyle
+  'https://images.unsplash.com/photo-1475688621402-4257b7f1c32c', // Contemporary fashion
 ].map(withUnsplashParams);
 
 const productImages: string[] = [
-  'https://images.unsplash.com/photo-1503602642458-232111445657',
-  'https://images.unsplash.com/photo-1526045478516-99145907023c',
-  'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f',
-  'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9',
-  'https://images.unsplash.com/photo-1491553895911-0055eca6402d',
-  'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40',
-  'https://images.unsplash.com/photo-1512499617640-c2f999098c70',
-  'https://images.unsplash.com/photo-1512496015851-a90fb38ba796',
-  'https://images.unsplash.com/photo-1474181487882-5abf3f0ba6c2',
-  'https://images.unsplash.com/photo-1483985988355-763728e1935b',
-  'https://images.unsplash.com/photo-1517504734587-289c83f244a2',
-  'https://images.unsplash.com/photo-1504274066651-8d31a536b11a',
+  'https://images.unsplash.com/photo-1523275335684-37898b6baf30', // Modern watch
+  'https://images.unsplash.com/photo-1572635196237-14b3f281503f', // Contemporary sunglasses
+  'https://images.unsplash.com/photo-1505740420928-5e560c06d30e', // Luxury headphones
+  'https://images.unsplash.com/photo-1560343090-f0409e92791a', // Modern tech product
+  'https://images.unsplash.com/photo-1491553895911-0055eca6402d', // High-end product
+  'https://images.unsplash.com/photo-1611930022073-b7a4ba5fcccd', // Contemporary design
+  'https://images.unsplash.com/photo-1585386959984-a4155224a1ad', // Modern lifestyle
+  'https://images.unsplash.com/photo-1600185365926-3a2ce3cdb9eb', // Premium product
+  'https://images.unsplash.com/photo-1523275335684-37898b6baf30', // Modern watch
+  'https://images.unsplash.com/photo-1572635196237-14b3f281503f', // Contemporary
+  'https://images.unsplash.com/photo-1505740420928-5e560c06d30e', // Luxury
+  'https://images.unsplash.com/photo-1560343090-f0409e92791a', // Electronics
 ].map(withUnsplashParams);
 
 const cinematicImages: string[] = [

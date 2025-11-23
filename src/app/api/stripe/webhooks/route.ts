@@ -1,4 +1,3 @@
-import { NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
 import { processStripeEvent } from '@/server/services/stripeWebhook';
 
@@ -10,10 +9,17 @@ function getWebhookSecret(): string {
 	return secret;
 }
 
+function jsonResponse(body: unknown, status = 200) {
+	return new Response(JSON.stringify(body), {
+		status,
+		headers: { 'Content-Type': 'application/json' }
+	});
+}
+
 export async function POST(request: Request) {
 	const signature = request.headers.get('stripe-signature');
 	if (!signature) {
-		return NextResponse.json({ error: 'missing_signature' }, { status: 400 });
+		return jsonResponse({ error: 'missing_signature' }, 400);
 	}
 
 	const rawBody = await request.text();
@@ -22,10 +28,8 @@ export async function POST(request: Request) {
 	try {
 		event = stripe.webhooks.constructEvent(rawBody, signature, getWebhookSecret());
 	} catch (error) {
-		console.error('[stripe-webhook] Invalid signature', {
-			message: error instanceof Error ? error.message : String(error)
-		});
-		return NextResponse.json({ error: 'invalid_signature' }, { status: 400 });
+		console.error('[stripe-webhook] Invalid signature', error);
+		return jsonResponse({ error: 'invalid_signature' }, 400);
 	}
 
 	try {
@@ -34,13 +38,13 @@ export async function POST(request: Request) {
 		console.error('[stripe-webhook] Processing failed', {
 			eventId: event.id,
 			type: event.type,
-			message: error instanceof Error ? error.message : String(error)
+			error
 		});
 		// Return 200 to avoid retries for internal errors; admins can resend events.
-		return NextResponse.json({ ok: false });
+		return jsonResponse({ ok: false });
 	}
 
-	return NextResponse.json({ ok: true });
+	return jsonResponse({ ok: true });
 }
 
 

@@ -1,159 +1,167 @@
+'use client';
+
 import Link from 'next/link';
-import { cookies } from 'next/headers';
+import useSWRInfinite from 'swr/infinite';
+import { jfetch } from '@/lib/api';
+import { formatMoney } from '@/lib/money';
+import type { Invoice, InvoicesPage } from '@/lib/types.billing';
 
-type InvoiceItem = {
-	id: string;
-	number: string | null;
-	status: string | null;
-	currency: string | null;
-	total: number | null;
-	subtotal: number | null;
-	created: number;
-	invoice_pdf: string | null;
-	hosted_invoice_url: string | null;
-	subscription_id: string | null;
-	customer_email: string | null;
+type ApiInvoicesResponse = {
+	items: {
+		id: string;
+		number: string | null;
+		status: 'paid' | 'open' | 'void' | 'draft' | 'uncollectible' | null;
+		currency: string | null;
+		total: number | null;
+		created: number;
+		invoice_pdf: string | null;
+		hosted_invoice_url: string | null;
+	}[];
+	next_cursor?: string | null;
 };
 
-type InvoicesResponse = {
-	items: InvoiceItem[];
-	has_more: boolean;
-	next_cursor: string | null;
-};
-
-type PageProps = {
-	searchParams?: { cursor?: string };
-};
-
-function baseUrl(): string {
-	return process.env.APP_BASE_URL ?? process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
-}
-
-async function fetchInvoices(cursor?: string): Promise<InvoicesResponse> {
-	const params = new URLSearchParams();
-	params.set('limit', '20');
-	if (cursor) params.set('starting_after', cursor);
-
-	const cookieStore = cookies();
-	const cookieHeader = cookieStore
-		.getAll()
-		.map((cookie) => `${cookie.name}=${cookie.value}`)
-		.join('; ');
-
-	const response = await fetch(`${baseUrl()}/api/billing/invoices?${params.toString()}`, {
-		headers: {
-			Cookie: cookieHeader
-		},
-		cache: 'no-store'
-	});
-
-	if (!response.ok) {
-		throw new Error('Failed to load invoices');
-	}
-
-	return (await response.json()) as InvoicesResponse;
-}
-
-function formatCurrency(amount: number | null, currency: string | null): string {
-	if (amount === null || currency === null) return '—';
-	return new Intl.NumberFormat('en-US', {
-		style: 'currency',
-		currency: currency.toUpperCase()
-	}).format(amount / 100);
-}
-
-function formatDate(timestamp: number): string {
-	return new Date(timestamp * 1000).toLocaleDateString(undefined, {
-		year: 'numeric',
-		month: 'short',
-		day: 'numeric'
-	});
-}
-
-function statusBadge(status: string | null) {
-	const normalized = status ?? 'unknown';
-	const colors: Record<string, string> = {
-		paid: 'bg-green-100 text-green-700',
-		open: 'bg-amber-100 text-amber-700',
-		void: 'bg-gray-200 text-gray-700',
-		uncollectible: 'bg-red-100 text-red-700'
+const fetchInvoices = async (cursor?: string | null): Promise<InvoicesPage> => {
+	const search = cursor ? `?limit=10&cursor=${cursor}` : '?limit=10';
+	const data = await jfetch<ApiInvoicesResponse>(`/api/billing/invoices${search}`);
+	return {
+		data: data.items.map<Invoice>((invoice) => ({
+			id: invoice.id,
+			number: invoice.number ?? invoice.id,
+			created_at: invoice.created ? new Date(invoice.created * 1000).toISOString() : undefined,
+			amount_due_minor: invoice.total ?? undefined,
+			currency: invoice.currency ?? undefined,
+			status: (invoice.status ?? 'open') as Invoice['status'],
+			hosted_invoice_url: invoice.hosted_invoice_url ?? undefined,
+			invoice_pdf: invoice.invoice_pdf ?? undefined
+		})),
+		next_cursor: data.next_cursor ?? null
 	};
-	const color = colors[normalized] ?? 'bg-gray-100 text-gray-600';
+};
+
+const STATUS_COLORS: Record<Invoice['status'], string> = {
+	paid: 'bg-green-100 text-green-800',
+	open: 'bg-amber-100 text-amber-800',
+	draft: 'bg-slate-200 text-slate-800',
+	void: 'bg-gray-200 text-gray-600',
+	uncollectible: 'bg-red-100 text-red-700'
+};
+
+function StatusBadge({ status }: { status: Invoice['status'] }) {
 	return (
-		<span className={`rounded-full px-2 py-1 text-xs font-medium ${color}`}>{normalized}</span>
+		<span className={`rounded-full px-2 py-1 text-xs font-medium ${STATUS_COLORS[status]}`}>
+			{status}
+		</span>
 	);
 }
 
-export default async function BillingInvoicesPage({ searchParams }: PageProps) {
-	const cursor = searchParams?.cursor;
-	let data: InvoicesResponse;
-	let error: string | null = null;
+export default function BillingInvoicesPage() {
+	const {
+		data,
+		error,
+		isLoading,
+		isValidating,
+		size,
+		setSize,
+		mutate
+	} = useSWRInfinite<InvoicesPage>(
+		(pageIndex, previousPageData) => {
+			if (pageIndex > 0 && !previousPageData?.next_cursor) {
+				return null;
+			}
+			const cursorKey = pageIndex === 0 ? 'start' : previousPageData?.next_cursor ?? 'start';
+			return `billing:invoices:page:cursor=${cursorKey}`;
+		},
+		async (key) => {
+			const cursor = key.split('=').pop();
+			return fetchInvoices(cursor === 'start' ? null : cursor);
+		}
+	);
 
-	try {
-		data = await fetchInvoices(cursor);
-	} catch (err) {
-		error = err instanceof Error ? err.message : String(err);
-		data = { items: [], has_more: false, next_cursor: null };
-	}
+	const invoices = data ? data.flatMap((page) => page.data) : [];
+	const nextCursor = data?.[data.length - 1]?.next_cursor ?? null;
+	const isEmpty = !isLoading && invoices.length === 0;
+
+	const handleLoadMore = () => {
+		if (nextCursor) {
+			void setSize(size + 1);
+		}
+	};
 
 	return (
-		<div className="mx-auto flex max-w-5xl flex-col gap-6 p-6">
+		<div className="mx-auto flex max-w-5xl flex-col gap-6 px-6 py-8 text-white">
 			<div className="flex flex-col gap-1">
-				<h1 className="text-2xl font-semibold text-white">Invoices</h1>
-				<p className="text-sm text-zinc-400">
-					View your past invoices and download official receipts from Stripe.
-				</p>
+				<h1 className="text-2xl font-semibold">Invoices</h1>
+				<p className="text-sm text-zinc-400">Download receipts for every Stripe checkout.</p>
 			</div>
 
-			{error && (
-				<div className="rounded border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-200">
-					Failed to load invoices: {error}
+			{error ? (
+				<div className="rounded border border-red-500/40 bg-red-500/10 p-3 text-sm text-red-200">
+					Failed to load invoices.{' '}
+					<button onClick={() => mutate()} className="underline">
+						Try again
+					</button>
 				</div>
-			)}
+			) : null}
 
-			{data.items.length === 0 && !error ? (
-				<div className="rounded border border-white/10 p-6 text-center text-sm text-zinc-400">
-					No invoices yet. Purchases will appear here once they are generated by Stripe.
+			{isLoading ? (
+				<div className="rounded border border-white/10 bg-white/5 p-6 text-sm text-zinc-400">Loading…</div>
+			) : isEmpty ? (
+				<div className="rounded border border-white/10 bg-white/5 p-6 text-sm text-zinc-400">
+					<p>No invoices yet.</p>
+					<p className="mt-2 text-xs text-zinc-500">
+						After your first checkout, invoices will appear here. A Stripe customer record is created
+						automatically during checkout.
+					</p>
 				</div>
 			) : (
-				<div className="overflow-hidden rounded border border-white/10 bg-zinc-900/60">
-					<table className="min-w-full divide-y divide-white/5 text-sm text-white">
-						<thead className="bg-zinc-900/80 text-left text-xs uppercase tracking-wide text-zinc-400">
+				<div className="overflow-hidden rounded border border-white/10 bg-white/5">
+					<table className="min-w-full text-sm text-white">
+						<thead className="bg-white/10 text-left text-xs uppercase tracking-wide text-zinc-400">
 							<tr>
 								<th className="px-4 py-3">Date</th>
 								<th className="px-4 py-3">Invoice #</th>
 								<th className="px-4 py-3">Status</th>
-								<th className="px-4 py-3">Total</th>
+								<th className="px-4 py-3">Amount</th>
 								<th className="px-4 py-3 text-right">Actions</th>
 							</tr>
 						</thead>
 						<tbody className="divide-y divide-white/5">
-							{data.items.map((invoice) => (
+							{invoices.map((invoice) => (
 								<tr key={invoice.id}>
-									<td className="px-4 py-3 text-zinc-200">{formatDate(invoice.created)}</td>
+									<td className="px-4 py-3 text-zinc-200">
+										{invoice.created_at
+											? new Date(invoice.created_at).toLocaleString()
+											: '—'}
+									</td>
 									<td className="px-4 py-3 text-zinc-300">{invoice.number ?? invoice.id}</td>
-									<td className="px-4 py-3">{statusBadge(invoice.status)}</td>
-									<td className="px-4 py-3">{formatCurrency(invoice.total, invoice.currency)}</td>
+									<td className="px-4 py-3">
+										<StatusBadge status={invoice.status} />
+									</td>
+									<td className="px-4 py-3">
+										{formatMoney(invoice.amount_due_minor ?? 0, invoice.currency ?? 'USD')}
+									</td>
 									<td className="px-4 py-3 text-right">
 										<div className="flex justify-end gap-2">
-											{invoice.hosted_invoice_url && (
+											{invoice.hosted_invoice_url ? (
 												<Link
 													href={invoice.hosted_invoice_url}
 													target="_blank"
+													rel="noreferrer"
 													className="text-xs text-blue-300 hover:text-blue-200"
 												>
 													View
 												</Link>
-											)}
-											{invoice.invoice_pdf && (
+											) : null}
+											{invoice.invoice_pdf ? (
 												<Link
 													href={invoice.invoice_pdf}
 													target="_blank"
+													rel="noreferrer"
 													className="text-xs text-zinc-300 hover:text-zinc-100"
 												>
 													PDF
 												</Link>
-											)}
+											) : null}
 										</div>
 									</td>
 								</tr>
@@ -164,13 +172,14 @@ export default async function BillingInvoicesPage({ searchParams }: PageProps) {
 			)}
 
 			<div className="flex justify-end">
-				{data.has_more && data.next_cursor ? (
-					<Link
-						href={`/billing/invoices?cursor=${data.next_cursor}`}
-						className="rounded border border-white/20 px-3 py-2 text-sm text-white hover:bg-white/10"
+				{nextCursor ? (
+					<button
+						onClick={handleLoadMore}
+						disabled={isValidating}
+						className="rounded border border-white/20 px-3 py-2 text-sm text-white transition hover:bg-white/10 disabled:opacity-50"
 					>
-						Next
-					</Link>
+						{isValidating ? 'Loading…' : 'Load more'}
+					</button>
 				) : (
 					<span className="text-sm text-zinc-500">End of results</span>
 				)}
@@ -178,5 +187,4 @@ export default async function BillingInvoicesPage({ searchParams }: PageProps) {
 		</div>
 	);
 }
-
 

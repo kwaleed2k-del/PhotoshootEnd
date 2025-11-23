@@ -1,0 +1,374 @@
+{
+  "repo": {
+    "name": "siyada-studio",
+    "default_branch": null
+  },
+  "frameworks": {
+    "nextjs": false,
+    "express": true,
+    "node_api_only": false,
+    "mobile": false,
+    "kiosk": false,
+    "other": [
+      "Vite + React SPA",
+      "Supabase Edge Functions"
+    ]
+  },
+  "packages": {
+    "stripe": "17.0.0",
+    "@stripe/stripe-js": null,
+    "supabase-js": "2.44.4",
+    "@supabase/*": [
+      "@supabase/ssr@0.5.2",
+      "@supabase/supabase-js@2.44.4"
+    ],
+    "mail": [],
+    "ai_models": [
+      "@google/genai@1.15.0",
+      "openai@6.8.1"
+    ],
+    "other_key": [
+      "express@4.18.2",
+      "react@19.1.1",
+      "vite@6.2.0",
+      "zod@3.23.8",
+      "swr@2.3.0",
+      "zustand@4.5.4"
+    ]
+  },
+  "env": {
+    "stripe": [
+      "STRIPE_SECRET_KEY",
+      "STRIPE_WEBHOOK_SECRET",
+      "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY",
+      "STRIPE_WEBHOOK_URL",
+      "STRIPE_PRICE_STARTER",
+      "STRIPE_PRICE_PROFESSIONAL",
+      "STRIPE_TOPUPS"
+    ],
+    "supabase": [
+      "SUPABASE_URL",
+      "SUPABASE_ANON_KEY",
+      "NEXT_PUBLIC_SUPABASE_URL",
+      "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+      "SUPABASE_SERVICE_ROLE_KEY"
+    ],
+    "email": [
+      "EMAIL_PROVIDER",
+      "RESEND_API_KEY",
+      "MAILERSEND_API_KEY",
+      "FROM_EMAIL",
+      "EMAIL_UNSUB_SECRET",
+      "EMAIL_WEBHOOK_SECRET"
+    ],
+    "feature_flags": [
+      "AUTH_ENFORCE",
+      "NEXT_PUBLIC_ADMIN_WRITE_ENABLED",
+      "DEMO_SESSION_USER_ID"
+    ],
+    "other": [
+      "APP_BASE_URL",
+      "INTERNAL_ADMIN_TOKEN",
+      "API_PORT",
+      "CRON_SECRET"
+    ]
+  },
+  "endpoints": {
+    "api_routes": [
+      {
+        "method": "GET",
+        "path": "/api/_catalog",
+        "file": "src/app/api/_catalog/route.ts"
+      },
+      {
+        "method": "POST",
+        "path": "/api/_emails/render",
+        "file": "src/app/api/_emails/render/route.ts"
+      },
+      {
+        "method": "GET",
+        "path": "/api/_emails/templates",
+        "file": "src/app/api/_emails/templates/route.ts"
+      },
+      {
+        "method": "GET",
+        "path": "/api/_internal/stripe-sanity",
+        "file": "src/app/api/_internal/stripe-sanity/route.ts"
+      },
+      {
+        "method": "GET",
+        "path": "/api/admin/credit-packages",
+        "file": "src/app/api/admin/credit-packages/route.ts"
+      },
+      {
+        "method": "PATCH",
+        "path": "/api/admin/credit-packages/:id",
+        "file": "src/app/api/admin/credit-packages/[id]/route.ts"
+      },
+      {
+        "method": "POST",
+        "path": "/api/admin/credit-packages/:id/verify",
+        "file": "src/app/api/admin/credit-packages/[id]/verify/route.ts"
+      },
+      {
+        "method": "GET",
+        "path": "/api/billing/balance",
+        "file": "src/app/api/billing/balance/route.ts"
+      },
+      {
+        "method": "GET",
+        "path": "/api/billing/history",
+        "file": "src/app/api/billing/history/route.ts"
+      },
+      {
+        "method": "GET",
+        "path": "/api/billing/invoices",
+        "file": "src/app/api/billing/invoices/route.ts"
+      },
+      {
+        "method": "GET",
+        "path": "/api/billing/invoices/:id",
+        "file": "src/app/api/billing/invoices/[id]/route.ts"
+      },
+      {
+        "method": "POST",
+        "path": "/api/billing/record-usage",
+        "file": "src/app/api/billing/record-usage/route.ts"
+      },
+      {
+        "method": "POST",
+        "path": "/api/checkout/credits",
+        "file": "src/app/api/checkout/credits/route.ts"
+      },
+      {
+        "method": "GET",
+        "path": "/api/credit-packages",
+        "file": "src/app/api/credit-packages/route.ts"
+      },
+      {
+        "method": "POST",
+        "path": "/api/stripe/webhooks",
+        "file": "src/app/api/stripe/webhooks/route.ts"
+      }
+    ],
+    "webhooks": [
+      {
+        "provider": "stripe",
+        "events": [
+          "checkout.session.completed",
+          "customer.subscription.*",
+          "payment_intent.*",
+          "invoice.*"
+        ],
+        "file": "src/server/http/server.ts#/api/stripe/webhook"
+      },
+      {
+        "provider": "stripe",
+        "events": [
+          "dynamic via processStripeEvent"
+        ],
+        "file": "src/app/api/stripe/webhooks/route.ts"
+      },
+      {
+        "provider": "email-resend",
+        "events": [
+          "email.bounced",
+          "email.complained",
+          "email.unsubscribed"
+        ],
+        "file": "src/server/http/server.ts#/api/email/webhooks/resend"
+      },
+      {
+        "provider": "email-mailersend",
+        "events": [
+          "hard_bounce",
+          "spam_complaint",
+          "unsubscribe"
+        ],
+        "file": "src/server/http/server.ts#/api/email/webhooks/mailersend"
+      }
+    ],
+    "pages_ui": [
+      {
+        "name": "Credits",
+        "path": "/billing/credits",
+        "file": "src/app/billing/credits/page.tsx"
+      },
+      {
+        "name": "Invoices",
+        "path": "/billing/invoices",
+        "file": "src/app/billing/invoices/page.tsx"
+      },
+      {
+        "name": "Settings",
+        "path": "/settings",
+        "file": "src/app/settings/page.tsx"
+      },
+      {
+        "name": "Onboarding",
+        "path": "/onboarding",
+        "file": "src/app/onboarding/page.tsx"
+      },
+      {
+        "name": "Admin Email Preview Center",
+        "path": "/admin/emails",
+        "file": "src/app/admin/emails/page.tsx"
+      },
+      {
+        "name": "Product Studio",
+        "path": "/studios/product",
+        "file": "src/app/studios/product/page.tsx"
+      },
+      {
+        "name": "Apparel Studio",
+        "path": "/studios/apparel",
+        "file": "src/app/studios/apparel/page.tsx"
+      }
+    ]
+  },
+  "db": {
+    "migrations": [
+      "supabase/migrations/20240090000000_create_user_generations_table.sql",
+      "supabase/migrations/20240102000000_create_credit_transactions_table.sql",
+      "supabase/migrations/20240105000000_create_billing_events_table.sql",
+      "supabase/migrations/20251116000010_auto_topup_settings.sql",
+      "supabase/migrations/20251116000016_email_suppressions.sql",
+      "supabase/migrations/20251116000017_email_jobs.sql"
+    ],
+    "tables": [
+      "users",
+      "user_generations",
+      "credit_transactions",
+      "subscription_history",
+      "credit_packages",
+      "billing_events",
+      "usage_analytics",
+      "usage_events",
+      "api_keys",
+      "rate_limit_counters",
+      "auto_topup_settings",
+      "email_events",
+      "email_suppressions",
+      "email_jobs"
+    ],
+    "rls_policies": [
+      "users_select_self",
+      "credit_tx_select_self",
+      "credit_tx_service_insert",
+      "credit_tx_service_update",
+      "credit_tx_service_delete"
+    ],
+    "cron_or_scheduled": [
+      "supabase/functions/cron-monthly-grant",
+      "supabase/functions/cron-welcome-backfill",
+      "supabase/functions/auth-welcome",
+      "scripts/jobs/monthlyGrant.ts",
+      "scripts/jobs/emailWorker.ts"
+    ]
+  },
+  "studios": {
+    "apparel": {
+      "entry_points": [
+        "src/app/studios/layout.tsx",
+        "src/app/studios/apparel/page.tsx"
+      ],
+      "services": [
+        "src/lib/studiosClient.ts",
+        "src/services/promptService.ts",
+        "src/utils/fashionPromptGenerator.ts",
+        "src/server/services/usageService.ts"
+      ],
+      "features": [
+        "classification",
+        "styling",
+        "poses",
+        "bg",
+        "lighting",
+        "expressions",
+        "grades",
+        "hyper_realism",
+        "cinematic",
+        "custom_prompt",
+        "auto_generate"
+      ]
+    },
+    "product": {
+      "entry_points": [
+        "src/app/studios/layout.tsx",
+        "src/app/studios/product/page.tsx"
+      ],
+      "services": [
+        "src/lib/studiosClient.ts",
+        "src/services/promptService.ts"
+      ],
+      "features": [
+        "analysis_concepts",
+        "aspect",
+        "color_grades",
+        "materials",
+        "artistic_xforms",
+        "camera_angles",
+        "focal_lengths",
+        "aperture",
+        "lighting",
+        "catchlight",
+        "templates",
+        "hyper_realism",
+        "cinematic"
+      ]
+    }
+  },
+  "emails": {
+    "templates": [
+      "src/server/emails/templates/welcome.en.ts",
+      "src/server/emails/templates/welcome.ar.ts",
+      "src/server/emails/templates/topupReceipt.en.ts",
+      "src/server/emails/templates/paymentFailed.en.ts",
+      "src/server/emails/templates/lowCredit.en.ts",
+      "src/server/emails/templates/marketing/newsletter.en.ts"
+    ],
+    "preview_center": {
+      "exists": true,
+      "path": "src/app/admin/emails/page.tsx"
+    }
+  },
+  "tests_docs": {
+    "tests": [
+      "tests/checkoutCredits.spec.ts",
+      "tests/creditPackagesAdmin.spec.ts",
+      "tests/stripeWebhook.spec.ts",
+      "tests/stripeSanity.spec.ts",
+      "tests/integration/external_ping.spec.ts",
+      "tests/integration/generate_text.spec.ts"
+    ],
+    "docs": [
+      "README.md",
+      "docs/BILLING.md",
+      "docs/OPERATIONS.md",
+      "SAAS_TRANSFORMATION_PRD.md",
+      "PLANNED_FEATURES.md",
+      "ROADMAP.md",
+      "docs/Phase-1-Done-Checklist.md"
+    ]
+  },
+  "flags_risks": {
+    "feature_flags_found": [
+      "AUTH_ENFORCE",
+      "NEXT_PUBLIC_ADMIN_WRITE_ENABLED",
+      "DEMO_SESSION_USER_ID"
+    ],
+    "todo_fixme_notes": [
+      {
+        "file": "src/server/services/emailService.ts",
+        "line": 142,
+        "note": "TODO: Call sendWelcome from a Supabase Edge Function user-created trigger."
+      }
+    ],
+    "obvious_gaps": [
+      "Both Vite/Express and legacy Next.js API routes coexist, which may cause duplicated webhook handling unless aligned.",
+      "No mobile or kiosk clients; distribution is web-only despite enterprise positioning.",
+      "Email providers (Resend/MailerSend) are referenced via env vars but no SDK dependency exists, so delivery relies on custom HTTP calls yet to be implemented."
+    ]
+  }
+}
+

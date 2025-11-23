@@ -72,7 +72,7 @@ export const fashionPromptGenerator = {
 **MISSION:** Create a stunning, commercially-ready fashion photograph where the model is wearing the exact clothing from the apparel reference image. This should look like a professional fashion shoot from a top-tier magazine or brand campaign.
 
 **CRITICAL REQUIREMENTS:**
-1. **MODEL FACE & BODY:** Use the model's exact face, body type, and physical features from the model reference image. **Do not change the model's facial structure, expression, skin tone, or identity — treat the face as locked and untouchable.**
+1. **MODEL FACE & BODY:** Use the model's exact face, body type, and physical features from the model reference image. **Do not change the model's facial structure, expression, skin tone, or identity — treat the face as locked and untouchable.** If a model reference image is provided, you are photographing that *exact person*. Reuse the identical facial identity — no beautification, morphing, or reinterpretation.
 2. **CLOTHING:** The model must be wearing the exact clothing item from the apparel reference image - same style, color, texture, and fit
 3. **USER SETTINGS ARE LAW:** Apply every studio control exactly as selected by the user — pose, gesture (e.g., hand on hips), expression, camera angle, crop, background, props, color grade, etc. No substitutions or omissions.
 4. **PROFESSIONAL QUALITY:** Studio-quality lighting, composition, and post-production

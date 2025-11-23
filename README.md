@@ -83,3 +83,10 @@ The CLI shares logic with the API route and exits non-zero if any required env, 
   2. `stripe listen --forward-to http://localhost:3000/api/stripe/webhooks`
   3. Visit `/billing/credits`, click **Buy**, complete checkout with `4242 4242 4242 4242`.
   4. Credits are granted via the webhook once Stripe confirms payment; resend events with `stripe events resend <evt_id>` to verify idempotency.
+
+## 🔑 Authentication Setup
+
+- Configure Supabase and set `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` so the browser client can create sessions.
+- Use `AUTH_ENFORCE=true` once you want middleware to require real logins; during demo periods set `AUTH_ENFORCE=false` and seed `DEMO_SESSION_USER_ID=<uuid>` so server code gracefully falls back.
+- Users sign up at `/signup`, log in at `/login`, and authenticated areas (`/dashboard`, `/billing/**`, `/admin/**`) are protected automatically.
+- Logging out clears the `sb-access-token` cookie so APIs relying on `getSessionUser()` immediately reflect the new state.
